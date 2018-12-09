@@ -1,0 +1,38 @@
+import numpy as np
+import matplotlib.pyplot as plt # Visuals
+import seaborn as sns
+import sklearn as skl
+import pandas as pd
+# Loading Data from a CSV File
+heartDisease = pd.DataFrame(data=pd.read_csv('HeartDisease.csv'))
+heartDisease.head(5)
+np.set_printoptions(threshold=np.nan)
+heartDisease.head()
+del heartDisease['ca']
+del heartDisease['slope']
+del heartDisease['thal']
+del heartDisease['oldpeak']
+heartDisease = heartDisease.replace('?', np.nan)
+heartDisease.dtypes
+heartDisease.columns
+from pgmpy.models import BayesianModel
+from pgmpy.estimators import MaximumLikelihoodEstimator, BayesianEstimator
+#from pgmpy.estimators import MaximumLikelihoodEstimator, BayesianEstimator
+model = BayesianModel([('age', 'trestbps'), ('age', 'fbs'), ('sex', 'trestbps'), ('sex', 'trestbps'), ('exang', 'trestbps'),('trestbps',' pred_attribute '),('fbs',' pred_attribute '),(' pred_attribute ', 'restecg'),(' pred_attribute ','thalach'),(' pred_attribute ','chol')])
+# Learing CPDs using Maximum Likelihood Estimators
+model.fit(heartDisease, estimator=MaximumLikelihoodEstimator)
+#for cpd in model.get_cpds():
+# print("CPD of {variable}:".format(variable=cpd.variable))
+# print(cpd)
+print(model.get_cpds('age'))
+print(model.get_cpds('chol'))
+print(model.get_cpds('sex'))
+model.get_independencies()
+# Doing exact inference using Variable Elimination
+from pgmpy.inference import VariableElimination
+HeartDisease_infer = VariableElimination(model)
+# Computing the probability of bronc given smoke.
+q = HeartDisease_infer.query(variables=['heartdisease'], evidence={'age': 34})
+print(q['heartdisease'])
+q = HeartDisease_infer.query(variables=['heartdisease'], evidence={'chol': 100})
+print(q['heartdisease'])
